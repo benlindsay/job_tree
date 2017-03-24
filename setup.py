@@ -5,7 +5,7 @@
 
 from distutils.core import setup
 
-desc = 'A module for automating hierarchical job creation and submission'
+desc = 'A module for automating flat or hierarchical job creation and submission'
 
 with open('README.rst', 'r') as f:
     long_desc = f.read()
@@ -13,14 +13,14 @@ with open('README.rst', 'r') as f:
 setup(
   name = 'job_tree',
   packages = ['job_tree'],
-  version = '0.1',
+  version = '0.2.2',
   description = desc,
   long_description = long_desc,
   requires = ['pandas'],
   install_requires = ['pandas'],
   author = 'Ben Lindsay',
   author_email = 'benjlindsay@gmail.com',
-  url = 'https://github.com/benlindsay/jobtree',
+  url = 'https://github.com/benlindsay/job_tree',
   keywords = ['workflow', 'simulations'],
   classifiers = [],
 )
