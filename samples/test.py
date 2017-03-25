@@ -3,7 +3,7 @@
 #
 # Copyright (c) 2017 Ben Lindsay <benjlindsay@gmail.com>
 
-from job_tree import Tier, generate_job_tree
+from job_tree import Tier, job_tree
 
 def tier_2_fn(df, param_dict):
     var_1 = int(param_dict['VAR_1'])
@@ -13,7 +13,7 @@ def tier_2_fn(df, param_dict):
 tier_list = [ Tier('tier_1.csv'), Tier(tier_2_fn) ]
 job_file_list = ['params.input']
 
-generate_job_tree(tier_list, job_file_list, call_sub_prog = False)
+job_tree(tier_list, job_file_list, submit = False)
 
 # Running this script should generate a directory tree that looks like this:
 
@@ -33,7 +33,7 @@ generate_job_tree(tier_list, job_file_list, call_sub_prog = False)
 # If you add 'flat_tree = False' to the arguments of generate_job_tree, like the
 # line below, you'll get hierarchical directory structure.
 
-# generate_job_tree(tier_list, job_file_list, call_sub_prog = False, flat_tree = False)
+# job_tree(tier_list, job_file_list, submit = False, flat = False)
 
 # 1/
 # |-- 1
