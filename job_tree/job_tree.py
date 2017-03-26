@@ -9,12 +9,12 @@ import pandas as pd
 import time
 import string
 
-def job_tree(tier_list=None, job_file_list=None, base_param_dict={},
+def job_tree(input_file_list=None, tier_list=None, base_param_dict={},
              base_dir='.', **kwargs):
     """
     Recursively generate the directory tree specified by values in files or
-    functions from 'tier_list'. Copies the files in 'job_file_list' to each job
-    directory and replaces all the variables with appropriate values
+    functions from 'tier_list'. Copies the files in 'input_file_list' to each
+    job directory and replaces all the variables with appropriate values
     """
     # Get and check variables
     if tier_list is None:
@@ -22,17 +22,15 @@ def job_tree(tier_list=None, job_file_list=None, base_param_dict={},
     for i, tier in enumerate(tier_list):
         if not isinstance(tier, Tier):
             tier_list[i] = Tier(tier)
-    if job_file_list is None:
-        raise ValueError("No job_file_list provided")
+    if input_file_list is None:
+        raise ValueError("No input_file_list provided")
     flat = kwargs.get('flat', True)
     name_sep = kwargs.get('name_sep', '-')
     job_name = kwargs.get('job_name', '')
     sub_file = kwargs.get('sub_file', 'sub.sh')
-    if not isfile(sub_file):
-        msg = "{} not found! Pass in valid 'sub_file' argument or rename your "
-        msg += "submit file to 'sub.sh'."
-        msg = msg.format(sub_file)
-        raise ValueError(msg)
+    kwargs['sub_file'] = sub_file
+    if sub_file not in input_file_list:
+        input_file_list.append(sub_file)
     # The first time through, determine whether to use qsub or sbatch
     # and store that back into the kwargs dictionary
     sub_prog = kwargs.get('sub_prog', _find_sub_prog())
@@ -90,12 +88,13 @@ def job_tree(tier_list=None, job_file_list=None, base_param_dict={},
             if ( not flat ) or ( flat and last_tier ):
                 mkdir(new_dir)
         if last_tier:
-            _copy_job_files(job_file_list, new_dir, param_dict)
+            _copy_input_files(input_file_list, new_dir, param_dict)
+            sub_fname = _replace_vars(sub_file, param_dict)
             if submit:
-                _submit_job(new_dir, sub_file, sleep_time, sub_prog)
+                _submit_job(new_dir, sub_fname, sleep_time, sub_prog)
         else:
             tier_list_copy = list(tier_list)
-            job_tree(tier_list_copy, job_file_list, param_dict,
+            job_tree(input_file_list, tier_list_copy, param_dict,
                      new_dir, **kwargs)
 
 class Tier():
@@ -186,14 +185,19 @@ def _merge_dicts(*dict_args):
         result.update(dictionary)
     return result
 
-def _copy_job_files(job_file_list, job_dir, param_dict):
+def _copy_input_files(input_file_list, job_dir, param_dict):
     """
-    Given a list of file paths 'job_file_list' and job directory
+    Given a list of file paths 'input_file_list' and job directory
     'job_dir', copies the files to the job directory and replaces
     variables in those files.
     """
-    print("Copying {} to {} and replacing vars".format(job_file_list, job_dir))
-    for fname in job_file_list:
+    # Make a copy of input_file_list just for safety
+    file_list = list(input_file_list)
+    # Replace variables in file names, if any
+    file_list = [ _replace_vars(fname, param_dict) for fname in file_list ]
+    print("Copying {} to {} and replacing vars".format(file_list, job_dir))
+    for fname in file_list:
+        # Copy file to job_dir with variables in text of file replaced
         with open(fname, 'r') as f_in, \
                 open(join(job_dir, fname), 'w') as f_out:
             text = f_in.read()

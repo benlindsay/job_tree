@@ -22,7 +22,7 @@ job_file_list = ['params.input', 'sub.sh']
 
 # Generate a hierarchical job tree submit the jobs.
 # Add 'submit = False' to prevent submission.
-job_tree(tier_list, job_file_list, flat = False)
+job_tree(job_file_list, tier_list, flat = False)
 
 # Running this script should generate a directory tree that looks like this:
 
