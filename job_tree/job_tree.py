@@ -28,6 +28,11 @@ def job_tree(tier_list=None, job_file_list=None, base_param_dict={},
     name_sep = kwargs.get('name_sep', '-')
     cum_job_name = kwargs.get('cum_job_name', '')
     sub_file = kwargs.get('sub_file', 'sub.sh')
+    if not isfile(sub_file):
+        msg = "{} not found! Pass in valid 'sub_file' argument or rename your "
+        msg += "submit file to 'sub.sh'."
+        msg = msg.format(sub_file)
+        raise ValueError(msg)
     # The first time through, determine whether to use qsub or sbatch
     # and store that back into the kwargs dictionary
     sub_prog = kwargs.get('sub_prog', _find_sub_prog())
