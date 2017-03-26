@@ -26,7 +26,7 @@ def job_tree(tier_list=None, job_file_list=None, base_param_dict={},
         raise ValueError("No job_file_list provided")
     flat = kwargs.get('flat', True)
     name_sep = kwargs.get('name_sep', '-')
-    cum_job_name = kwargs.get('cum_job_name', '')
+    job_name = kwargs.get('job_name', '')
     sub_file = kwargs.get('sub_file', 'sub.sh')
     if not isfile(sub_file):
         msg = "{} not found! Pass in valid 'sub_file' argument or rename your "
@@ -69,15 +69,15 @@ def job_tree(tier_list=None, job_file_list=None, base_param_dict={},
     # jobs if this is the last tier, or recursively generating the next tier
     for param_dict in param_dict_list:
         param_dict = _merge_dicts(base_param_dict, param_dict)
-        if cum_job_name == '':
-            new_cum_job_name = param_dict[name_field]
+        if job_name == '':
+            new_job_name = param_dict[name_field]
         else:
-            new_cum_job_name = cum_job_name + name_sep + param_dict[name_field]
-        kwargs['cum_job_name'] = new_cum_job_name
-        param_dict['CUM_JOB_NAME'] = new_cum_job_name
+            new_job_name = job_name + name_sep + param_dict[name_field]
+        kwargs['job_name'] = new_job_name
+        param_dict['JOB_NAME'] = new_job_name
         if flat:
             if last_tier:
-                new_dir = join(base_dir, new_cum_job_name)
+                new_dir = join(base_dir, new_job_name)
             else:
                 new_dir = base_dir
         else:

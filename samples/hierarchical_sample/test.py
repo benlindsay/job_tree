@@ -117,5 +117,5 @@ job_tree(tier_list, job_file_list, flat = False)
 # `-- tier_1.csv
 
 # Where the {VAR_1}, {VAR_2}, and {VAR_3} in each params.input file is replaced
-# with the corresponding variables. {CUM_JOB_NAME} is replaced by
+# with the corresponding variables. {JOB_NAME} is replaced by
 # hyphen-separated string representing the directory tree in which it resides
