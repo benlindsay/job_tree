@@ -19,9 +19,9 @@ def job_tree(tier_list=None, job_file_list=None, base_param_dict={},
     # Get and check variables
     if tier_list is None:
         raise ValueError("No tier_list provided")
-    for tier in tier_list:
+    for i, tier in enumerate(tier_list):
         if not isinstance(tier, Tier):
-            raise ValueError("'tier_list' must contain Tier objects!")
+            tier_list[i] = Tier(tier)
     if job_file_list is None:
         raise ValueError("No job_file_list provided")
     flat = kwargs.get('flat', True)
@@ -46,32 +46,13 @@ def job_tree(tier_list=None, job_file_list=None, base_param_dict={},
             df[column] = df[column].astype(str)
         if name_field is None:
             name_field = df.columns[0]
+    # If provided, add fields in next_tier's dictionary to the dataframe df
+    if next_tier.field_dict is not None:
+        df, name_field = _add_dict_to_df(next_tier.field_dict, df, name_field)
     # Use any functions provided to generate data for other fields to add to df
-    for fn in next_tier.fn_list:
-        field_arrays_dict = fn(df, base_param_dict)
-        # Force data to stay as strings
-        df_tmp = pd.DataFrame(field_arrays_dict, dtype=str)
-        for column in df_tmp:
-            df_tmp[column] = df_tmp[column].astype(str)
-        # If not provided in Tier object and no CSV file was provided, use the
-        # first field name from the first function provided as the names for
-        # next tier
-        if name_field is None:
-            name_field = df_tmp.columns[0]
-        if df is None:
-            df = df_tmp.copy()
-        elif len(df) == len(df_tmp):
-            try:
-                df = df.join(df_tmp, how='outer')
-            except ValueError:
-                msg = "{} and {} contain overlapping names!"
-                msg = msg.format(df.columns, df_tmp.columns)
-                raise ValueError(msg)
-        else:
-            msg = "Rows of df and df_tmp don't line up!\n"
-            msg += "df:\n{}".format(df)
-            msg += "df_tmp:\n{}".format(df_tmp)
-            raise ValueError(msg)
+    if next_tier.dict_func is not None:
+        field_arrays_dict = next_tier.dict_func(df, base_param_dict)
+        df, name_field = _add_dict_to_df(field_arrays_dict, df, name_field)
     # Create a list of dictionaries where each dictionary contains key-value
     # pairs for variable replacements within its corresponding branch
     param_dict_list = df.to_dict(orient='records')
@@ -119,8 +100,10 @@ class Tier():
     """
     def __init__(self, *args, **kwargs):
         self.csv_file = None
-        self.fn_list = []
-        self.name_field = None
+        self.field_dict = None
+        self.dict_func = None
+        self.name_field = kwargs.get('name_field', None)
+        data_found = False
         for arg in args:
             if isinstance(arg, basestring):
                 if isfile(arg):
@@ -131,13 +114,50 @@ class Tier():
                         raise ValueError(msg)
                 else:
                     raise ValueError("Couldn't find file called {}!".format(arg))
+                data_found = True
+            elif isinstance(arg, dict):
+                self.field_dict = arg
+                data_found = True
             elif callable(arg):
-                self.fn_list.append(arg)
+                self.dict_func = arg
+                data_found = True
             else:
                 raise ValueError("Tier argument {} not recognized!".format(arg))
-        if self.csv_file is None and len(self.fn_list) == 0:
-            raise ValueError("No files or functions passed to Tier!")
-        self.name_field = kwargs.get('name_field', None)
+        if not data_found:
+            raise ValueError("No files, dicts, or functions passed to Tier!")
+
+def _add_dict_to_df(field_dict, df=None, name_field=None):
+    """
+    Helper function for job_tree() that takes a dataframe (or NoneType) and a
+    dictionary structured like
+    {'col_1': ['val_1', 'val_2', ...], 'col_2': ['val_3', 'val_4', ...], ...}
+    then either creates a dataframe or adds to the given one and returns the
+    final dataframe.
+    """
+    # Force data to stay as strings
+    df_tmp = pd.DataFrame(field_dict, dtype=str)
+    for column in df_tmp:
+        df_tmp[column] = df_tmp[column].astype(str)
+    # If not provided in Tier object and no CSV file was provided, use the
+    # first field name from the first function provided as the names for
+    # next tier
+    if name_field is None:
+        name_field = df_tmp.columns[0]
+    if df is None:
+        df = df_tmp.copy()
+    elif len(df) == len(df_tmp):
+        try:
+            df = df.join(df_tmp, how='outer')
+        except ValueError:
+            msg = "{} and {} contain overlapping names!"
+            msg = msg.format(df.columns, df_tmp.columns)
+            raise ValueError(msg)
+    else:
+        msg = "Rows of df and df_tmp don't line up!\n"
+        msg += "df:\n{}".format(df)
+        msg += "df_tmp:\n{}".format(df_tmp)
+        raise ValueError(msg)
+    return df, name_field
 
 def _find_sub_prog():
     """
