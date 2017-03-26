@@ -13,11 +13,12 @@ with open('README.rst', 'r') as f:
 setup(
   name = 'job_tree',
   packages = ['job_tree'],
-  version = '0.2.2',
+  version = '0.3.0',
   description = desc,
   long_description = long_desc,
   requires = ['pandas'],
   install_requires = ['pandas'],
+  scripts = ['bin/job_tree'],
   author = 'Ben Lindsay',
   author_email = 'benjlindsay@gmail.com',
   url = 'https://github.com/benlindsay/job_tree',
