@@ -32,9 +32,9 @@ If you want to run 3 jobs that have `10`, `20`, or `30` as the value of `VAR_1` 
 
 ```
 VAR_1
-1
-2
-3
+10
+20
+30
 ```
 
 You also have a submission script `sub.sh` with the following contents:
@@ -47,7 +47,7 @@ You also have a submission script `sub.sh` with the following contents:
 
 cd $PBS_O_WORKDIR
 
-# Run a stupid task
+# Run a task
 /path/to/my/program.exe params.input > output.log
 ```
 
@@ -59,7 +59,7 @@ With these files all in the base directory of your study, you can type
 job_tree params.input
 ```
 
-and the tool will create directories `1/`, `2/`, and `3/`, copy `params.input` and `sub.sh` into each directory, replace `{VAR_1}` and `{JOB_NAME}` with `1`, `2`, or `3` to match the directory it's in, and submit each job using `qsub` (or `sbatch` if that's what's available).
+and the tool will create directories `10/`, `20/`, and `30/`, copy `params.input` and `sub.sh` into each directory, replace `{VAR_1}` and `{JOB_NAME}` with `10`, `20`, or `30` to match the directory it's in, and submit each job using `qsub` (or `sbatch` if that's what's available).
 
 If your files don't have the default names, say `my_submit_file` instead of `sub.sh`, and `var1.txt` instead of `tier_1.csv`, and say you have another input file called `other_params.input`, your command would look like this:
 
