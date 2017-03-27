@@ -13,7 +13,7 @@ args = sys.argv[1:]
 i_arg = 0
 double_dash_done = False
 tier_arg = False
-kwargs = {'job_file_list': [], 'tier_list': []}
+kwargs = {'input_file_list': [], 'tier_list': []}
 while i_arg < len(args):
     if args[i_arg].startswith('--'):
         if double_dash_done:
@@ -42,10 +42,10 @@ while i_arg < len(args):
             if tier_arg:
                 kwargs['tier_list'].append(args[i_arg])
             else:
-                kwargs['job_file_list'].append(args[i_arg])
+                kwargs['input_file_list'].append(args[i_arg])
     i_arg += 1
 
-if len(kwargs['job_file_list']) == 0:
+if len(kwargs['input_file_list']) == 0:
     raise ValueError("No job files found!")
 if len(kwargs['tier_list']) == 0:
     print("No tier files provided. Looking for tier_*.csv files:")
@@ -57,7 +57,9 @@ if len(kwargs['tier_list']) == 0:
             break
         kwargs['tier_list'].append(fname)
         i += 1
-if len(kwargs['tier_list']) == 0:
-    raise ValueError("No tier files found!")
+    if i > 1:
+        print("Found {}".format(kwargs['tier_list']))
+    else:
+        raise ValueError("No tier files found!")
 
 job_tree(**kwargs)
