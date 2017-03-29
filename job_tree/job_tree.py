@@ -26,6 +26,7 @@ def job_tree(input_file_list=None, tier_list=None, base_param_dict={},
         raise ValueError("No input_file_list provided")
     flat = kwargs.get('flat', True)
     name_sep = kwargs.get('name_sep', '-')
+    csv_sep = kwargs.get('csv_sep', '\s+')
     job_name = kwargs.get('job_name', '')
     sub_file = kwargs.get('sub_file', 'sub.sh')
     kwargs['sub_file'] = sub_file
@@ -44,7 +45,7 @@ def job_tree(input_file_list=None, tier_list=None, base_param_dict={},
     name_field = next_tier.name_field
     # If provided, read data from CSV file into dataframe df
     if next_tier.csv_file is not None:
-        df = pd.read_csv(next_tier.csv_file, dtype=str)
+        df = pd.read_csv(next_tier.csv_file, sep=csv_sep, dtype=str)
         for column in df:
             df[column] = df[column].astype(str)
         if name_field is None:
